@@ -2,63 +2,120 @@
 
 **IP threat intelligence**
 
-Look up any IP or hostname: location, ISP, whether it's a **VPN / proxy / Tor / datacenter**
-or a **real home or mobile connection**, and whether it has a **history of attacks or abuse**.
+Look up any IP address and find out who is behind it: whether it's a **VPN, proxy, Tor exit, datacenter** or a **real home or mobile connection**, and whether it has a **history of attacks or abuse**. Every verdict shows the evidence behind it.
 
-Beyond a normal lookup it also shows:
-- **Infrastructure history**: who has routed the IP's block on the internet and since when (RIPEstat BGP data).
-  Freshly announced or frequently re-leased blocks are a classic sign of attack infrastructure.
-- **Neighborhood scan**: all 256 addresses of the surrounding /24 as a colored grid (Tor, blocklisted, VPN, datacenter, home).
-- **Analyst assessment**: a plain-English summary and recommended action. Rule-based by default, or written by
-  Claude when `ANTHROPIC_API_KEY` is set.
+recon-ip runs on your own computer and opens in your browser. No account needed.
 
-Works as a website (`server.py`) or a command-line tool (`ipcheck.py`). Python 3.8+.
-The only optional dependency is `anthropic`, for the AI-written assessment.
+---
 
-## Run it locally
+## What you get
+
+- **Two clear verdicts**: what kind of connection the IP is, and its threat history, scored separately.
+- **Infrastructure history**: who has operated the IP's network and for how long. New or frequently resold networks are a common sign of attack infrastructure.
+- **Neighborhood scan**: the 256 surrounding addresses shown as a colored grid, exposing risky networks.
+- **Analyst assessment**: a plain-English summary with a recommended action.
+
+**Sources:** AbuseIPDB, GreyNoise, Shodan InternetDB, Spamhaus, SpamCop, DroneBL, the Tor Project, RIPEstat and ip-api.
+
+---
+
+## Install and run
+
+### 1. Install Python
+
+You need **Python 3.8 or newer**. Check with:
+
+```
+python --version
+```
+
+If that fails, download Python from **https://www.python.org/downloads/**.
+On Windows, tick **"Add python.exe to PATH"** on the first installer screen.
+
+> On macOS and Linux, use `python3` instead of `python` in every command below.
+
+### 2. Download recon-ip
+
+Click the green **Code** button at the top of this page, choose **Download ZIP**, and extract it.
+
+Or, with Git:
+
+```
+git clone https://github.com/dev3lr/reconip.git
+```
+
+### 3. Add your AbuseIPDB key (recommended, free)
+
+This adds attack-report history to every lookup. recon-ip works without it, but the threat verdict is less complete.
+
+1. Create a free account at **https://www.abuseipdb.com/register**.
+2. Go to **Account → API** and create a key.
+3. In the recon-ip folder, create a file named **`.env`** containing this one line (with your key after the `=`):
+
+   ```
+   ABUSEIPDB_API_KEY=paste_your_key_here
+   ```
+
+   **Windows tip:** in Notepad, choose *Save as*, set *Save as type* to **All files**, and name it `.env`.
+
+Keep this file private. Never share it or upload it anywhere.
+
+### 4. Start recon-ip
+
+Open a terminal **in the recon-ip folder**
+(Windows: open the folder, click the address bar, type `cmd` and press Enter) and run:
 
 ```
 python server.py
 ```
-Open http://localhost:8000.
 
-## Put it online (free) with Render
+### 5. Open it
 
-1. Push this folder to a GitHub repository.
-2. Go to https://dashboard.render.com, choose **New > Blueprint**, pick the repository.
-   Render reads `render.yaml` and sets everything up.
-3. Optional: paste a free AbuseIPDB key (https://www.abuseipdb.com/register) when asked for
-   `ABUSEIPDB_API_KEY`. That adds attack-report history.
-4. You'll get a URL like `https://recon-ip-xxxx.onrender.com` to share.
+Go to **http://localhost:8000** in your browser and look up any IP.
 
-The free plan sleeps after 15 minutes idle, so the first visit after a while takes ~30 seconds.
+To stop recon-ip, press **Ctrl + C** in the terminal.
 
-### Other hosts
-- **Railway / Fly.io / any VPS**: use the `Dockerfile`. Set `TRUST_PROXY=1` when behind a proxy
-  so "Check my IP" and the rate limit see the visitor's real IP.
+---
 
-## Settings (environment variables)
+## Troubleshooting
 
-| Variable | Meaning |
+| Problem | Fix |
 |---|---|
-| `PORT` | Port to listen on (default 8000; hosts set this automatically) |
-| `ABUSEIPDB_API_KEY` | Enables abuse report history and ISP usage type |
-| `ANTHROPIC_API_KEY` | Enables the Claude-written analyst assessment (otherwise rule-based) |
-| `IPCHECK_AI_MODEL` | Claude model for the assessment (default `claude-opus-5-5`) |
-| `TRUST_PROXY` | Number of reverse proxies in front of the app (`1` on Render/Railway/Fly). Leave unset otherwise |
-| `AI_DAILY_LIMIT` | Max Claude-written reports per day (default 200) |
-| `RATE_LIMIT` | API calls per visitor per minute (default 45; one page lookup uses 3) |
+| `python` is not recognized | Reinstall Python and tick **Add python.exe to PATH**, or try `py server.py` |
+| Port 8000 is already in use | Use another port. Windows: `set PORT=8080 && python server.py` · macOS/Linux: `PORT=8080 python3 server.py`, then open http://localhost:8080 |
+| No AbuseIPDB row in results | Check the `.env` file is in the same folder as `server.py`, is named exactly `.env` (not `.env.txt`), then restart |
+| A lookup is slow the first time | Normal: nine sources are queried at once. Repeat lookups are cached |
 
-Lookups are cached for 15 minutes per IP, neighborhood scans for an hour per /24.
+---
 
-## Limits
-- ip-api.com's free tier allows ~45 lookups/minute **for the whole server** and is for
-  non-commercial use only. GreyNoise's free API has a daily cap.
-- Residential-proxy services route traffic through real home connections, so they look
-  residential. Detecting those needs a paid feed (IPQualityScore, Spur, etc).
+## Command-line use
 
-## Command line
+Prefer the terminal? Look up IPs directly:
+
 ```
-python ipcheck.py 8.8.8.8 example.com
-python ipcheck.py --json 1.2.3.4
+python ipcheck.py 8.8.8.8
+python ipcheck.py 1.1.1.1 example.com
+python ipcheck.py --json 8.8.8.8
 ```
+
+---
+
+## Optional settings
+
+Add any of these to your `.env` file:
+
+| Setting | What it does |
+|---|---|
+| `ABUSEIPDB_API_KEY` | Adds attack-report history (recommended) |
+| `ANTHROPIC_API_KEY` | AI-written analyst assessment instead of the rule-based one. Requires `pip install anthropic`. Paid per use |
+| `AI_DAILY_LIMIT` | Max AI-written assessments per day (default 200) |
+| `PORT` | Port to run on (default 8000) |
+| `RATE_LIMIT` | Requests per visitor per minute (default 45) |
+
+---
+
+## Good to know
+
+- The free data sources have limits: ip-api allows about 45 lookups a minute and is for non-commercial use; AbuseIPDB's free plan allows 1,000 lookups a day.
+- Residential proxy services route traffic through real home connections, so they can look like ordinary home users.
+- Results are automated assessments from third-party data and can be wrong. Use recon-ip for lawful purposes only, and never to harass or target individuals.
