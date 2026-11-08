@@ -1,0 +1,10 @@
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY ipcheck.py insights.py server.py ./
+COPY static ./static
+ENV PORT=8000 PYTHONUNBUFFERED=1
+EXPOSE 8000
+USER nobody
+CMD ["python", "server.py"]

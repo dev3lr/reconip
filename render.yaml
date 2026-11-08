@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ipcheck
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python server.py"
+    healthCheckPath: /healthz
+    envVars:
+      - key: TRUST_PROXY
+        value: "1"
+      - key: ABUSEIPDB_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
