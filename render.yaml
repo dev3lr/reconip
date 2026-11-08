@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ipcheck
+    name: recon-ip
     runtime: python
     plan: free
     buildCommand: "pip install -r requirements.txt"

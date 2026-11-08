@@ -29,7 +29,7 @@ Open http://localhost:8000.
    Render reads `render.yaml` and sets everything up.
 3. Optional: paste a free AbuseIPDB key (https://www.abuseipdb.com/register) when asked for
    `ABUSEIPDB_API_KEY`. That adds attack-report history.
-4. You'll get a URL like `https://ipcheck-xxxx.onrender.com` to share.
+4. You'll get a URL like `https://recon-ip-xxxx.onrender.com` to share.
 
 The free plan sleeps after 15 minutes idle, so the first visit after a while takes ~30 seconds.
 
